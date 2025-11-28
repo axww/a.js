@@ -97,7 +97,6 @@ export async function Footer(a: Context, z: Props) {
         </div>
         ${(await Config.get<number>(a, 'land', true) == 4) ? `` : html`
         <p class="text-sm opacity-50">
-          <a href="https://github.com/axww/A.js" target="_blank">A.js</a>
           <a href="https://github.com/asisyu" target="_blank">AsisYu</a>
           <a href="https://github.com/Kutinana" target="_blank">Kutinana</a>
           <a href="https://www.dogyun.com/" target="_blank">DogYun</a>
