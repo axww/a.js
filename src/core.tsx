@@ -88,17 +88,17 @@ export async function Auth(a: Context) {
     if (!auth.uid) { return undefined }
     const user = await DB.db
         .prepare(`
-        WITH message AS (
-            SELECT sort
-            FROM post
-            WHERE attr = 0 AND call = ?
-            ORDER BY attr DESC, call DESC, sort DESC
-            LIMIT 1
-        )
-        SELECT *, (SELECT COALESCE(sort, 0) FROM message) AS last_call
-        FROM user
-        WHERE uid = ?
-    `)
+            WITH message AS (
+                SELECT sort
+                FROM post
+                WHERE attr = 0 AND call = ?
+                ORDER BY attr DESC, call DESC, sort DESC
+                LIMIT 1
+            )
+            SELECT *, (SELECT COALESCE(sort, 0) FROM message) AS last_call
+            FROM user
+            WHERE uid = ?
+        `)
         .get([auth.uid, auth.uid])
     if (!user) { return undefined }
     const { hash, salt, ...i } = user // 把密码从返回数据中抹除

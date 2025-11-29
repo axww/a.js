@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { raw } from "hono/html";
-import { Auth } from "./core";
+import { Auth, DB } from "./core";
 import { PEdit } from "../render/PEdit";
 
 export async function pEdit(a: Context) {
@@ -13,16 +13,15 @@ export async function pEdit(a: Context) {
     let content = ""
     if (eid < 0) {
         title = "编辑"
-        const post = (await DB(a)
-            .select()
-            .from(Post)
-            .where(and(
-                eq(Post.pid, -eid),
-                inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
-                (i.grade >= 3) ? undefined : eq(Post.user, i.uid), // 站长和作者都能编辑
-                (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
-            ))
-        )?.[0]
+        const post = await DB.db
+            .prepare(`
+                SELECT *
+                FROM post
+                WHERE pid = ?
+                AND attr IN (0,1)
+                `+ ((i.grade >= 3) ? `` : `AND user = ? AND time + 604800 > ?`)
+            )
+            .get(-eid, i.uid, a.get('time'))
         if (!post) { return a.text('403', 403) }
         land = post.land;
         content = raw(post.content) ?? '';
