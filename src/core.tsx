@@ -50,8 +50,7 @@ export class Config {
     private static data = Maps.get<string, any>('Config');
     private static void = true;
     static async init(a: Context) {
-        const sql = DB.db.prepare(`SELECT * FROM conf`);
-        const configs = await sql.all();
+        const configs = await DB.db.prepare(`SELECT * FROM conf`).all();
         configs.forEach(({ key, value }: { key: string; value: string }) => {
             try {
                 this.data.set(key, value ? JSON.parse(value) : null);
@@ -72,10 +71,9 @@ export class Config {
     static async set(a: Context, key: string, value: any) {
         if (this.void) { await this.init(a); }
         try {
-            const sql = DB.db.prepare(`
-                INSERT INTO conf ? VALUES ? ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-            `);
-            await sql.run([key, value]);
+            await DB.db
+                .prepare(`INSERT INTO conf ? VALUES ? ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`)
+                .run([key, value]);
             this.data.set(key, value);
         } catch (error) {
             console.error(`Failed to set config ${key}:`, error);
@@ -88,12 +86,12 @@ export async function Auth(a: Context) {
     if (!jwt) { return undefined }
     let auth = await verify(jwt, await Config.get<string>(a, 'secret_key')) as { uid: number }
     if (!auth.uid) { return undefined }
-    const sql = DB.db.prepare(`
+    const user = await DB.db
+        .prepare(`
         WITH message AS (
             SELECT sort
             FROM post
-            WHERE attr = 0
-            AND call = ?
+            WHERE attr = 0 AND call = ?
             ORDER BY attr DESC, call DESC, sort DESC
             LIMIT 1
         )
@@ -101,7 +99,7 @@ export async function Auth(a: Context) {
         FROM user
         WHERE uid = ?
     `)
-    const user = await sql.get([auth.uid, auth.uid])
+        .get([auth.uid, auth.uid])
     if (!user) { return undefined }
     const { hash, salt, ...i } = user // 把密码从返回数据中抹除
     return i

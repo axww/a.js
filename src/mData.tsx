@@ -1,38 +1,31 @@
 import { Context } from "hono";
-import { Auth, HTMLText } from "./core";
+import { Auth, DB, HTMLText } from "./core";
 
 export async function mData(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     const sort = parseInt(a.req.query('sort') ?? '0')
-    const QuotePost = alias(Post, 'QuotePost')
 
-    const sql = db.prepare(`INSERT INTO guestbook(comment) VALUES (?)`);
-
-
-
-    const data = await DB(a)
-        .select({
-            post_pid: Post.pid,
-            post_tid: sql`-${Post.land}`, // 因为Message都是Post 所以-land就是tid
-            post_time: Post.time,
-            post_content: Post.content,
-            post_uid: User.uid,
-            post_name: User.name,
-            quote_pid: QuotePost.pid,
-            quote_content: QuotePost.content,
-        })
-        .from(Post)
-        .where(and(
-            eq(Post.attr, 0),
-            eq(Post.call, -i.uid),
-            gt(Post.sort, 0),
-            sort ? lt(Post.sort, sort) : undefined,
-        ))
-        .leftJoin(User, eq(User.uid, Post.user))
-        .leftJoin(QuotePost, eq(QuotePost.pid, Post.refer_pid))
-        .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
-        .limit(10)
+    // 因为 message 都是 post 所以 tid 是 -land
+    const data = await DB.db
+        .prepare(`
+        SELECT
+            post.pid AS post_pid,
+            -post.land AS post_tid,
+            post.time AS post_time,
+            post.content AS post_content,
+            user.uid AS post_uid,
+            user.name AS post_name,
+            quote.pid AS quote_pid,
+            quote.content AS quote_content
+        FROM post
+        LEFT JOIN user ON user.uid = post.user
+        LEFT JOIN post AS quote ON quote.pid = post.cite
+        WHERE post.attr = 0 AND post.call = ? ` + (sort ? `AND post.sort < ?` : ``) + `
+        ORDER BY post.attr DESC, post.call DESC, post.sort DESC
+        LIMIT 10
+            `)
+        .all([i.uid, sort]) //? 传入sort但构造句没有时
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);
         row.post_content = await HTMLText(row.post_content, 300);
