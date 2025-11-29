@@ -21,7 +21,7 @@ export async function pSave(a: Context) {
             .update(Post)
             .set({
                 call_land: sql<number>`CASE WHEN ${Post.call_land} > 0 THEN ${land_comb} ELSE ${Post.call_land} END`, // 回帖不能修改引用
-                root_land: sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${land} ELSE ${Post.root_land} END`, // 回帖不能修改引用
+                land: sql<number>`CASE WHEN ${Post.land} > 0 THEN ${land} ELSE ${Post.land} END`, // 回帖不能修改引用
                 content: content,
             })
             .where(and(
@@ -43,7 +43,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.user,
                 tid: Thread.pid,
-                thread_root_land: Thread.root_land, // 引用所在Thread的root_land>0
+                thread_land: Thread.land, // 引用所在Thread的land>0
                 thread_show_time: Thread.show_time,
             })
             .from(Post)
@@ -51,10 +51,10 @@ export async function pSave(a: Context) {
                 eq(Post.pid, eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能回复
             ))
-            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${Post.pid} ELSE -${Post.root_land} END`))
+            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.land} > 0 THEN ${Post.pid} ELSE -${Post.land} END`))
         )?.[0]
         if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if ([1, 2].includes(quote.thread_root_land) && a.get('time') > quote.thread_show_time + 604800) { return a.text('too_old', 429) } // 无热度7天后关闭
+        if ([1, 2].includes(quote.thread_land) && a.get('time') > quote.thread_show_time + 604800) { return a.text('too_old', 429) } // 无热度7天后关闭
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -65,7 +65,7 @@ export async function pSave(a: Context) {
                     refer_pid: quote.pid,
                     call_land: -quote.uid,
                     show_time: (i.uid == quote.uid) ? 0 : a.get('time'), // 如果回复的是自己则隐藏
-                    root_land: -quote.tid,
+                    land: -quote.tid,
                     time: a.get('time'),
                     content,
                 })
@@ -75,7 +75,7 @@ export async function pSave(a: Context) {
                 .update(Post)
                 .set({
                     refer_pid: sql<number>`LAST_INSERT_ROWID()`,
-                    show_time: [1, 2, 4].includes(quote.thread_root_land) ? a.get('time') : Post.show_time, // 回复后顶贴的分区
+                    show_time: [1, 2, 4].includes(quote.thread_land) ? a.get('time') : Post.show_time, // 回复后顶贴的分区
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -103,7 +103,7 @@ export async function pSave(a: Context) {
                     user: i.uid,
                     call_land: land_comb,
                     show_time: a.get('time'),
-                    root_land: land,
+                    land: land,
                     time: a.get('time'),
                     content,
                 }).returning({ pid: Post.pid })

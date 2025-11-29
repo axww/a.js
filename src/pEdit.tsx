@@ -26,7 +26,7 @@ export async function pEdit(a: Context) {
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
-        land = post.root_land;
+        land = post.land;
         content = raw(post.content) ?? '';
     } else if (eid > 0) {
         title = "回复"

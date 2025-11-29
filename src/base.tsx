@@ -23,17 +23,17 @@ export const Post = sqliteTable("post", {
     refer_pid: integer().notNull().default(0), // T:话题最新回复 P:回复引用帖子
     call_land: integer().notNull().default(0), // T>=0:话题聚合分区 P<0:回复呼叫用户
     show_time: integer().notNull().default(0), // T:最后回复时间 P:帖子发表时间(消息用)
-    root_land: integer().notNull().default(0), // T>0:话题所属分区 P<0:回复所属帖子
+    land: integer().notNull().default(0), // T>0:话题所属分区 P<0:回复所属帖子
     time: integer().notNull().default(0),
     content: text().notNull().default(''),
 }, (table) => [
     index("post:attr,call_land,show_time").on(table.attr, table.call_land, table.show_time),
     // call_land=0,首页帖子(回复时间排序)
     // call_land=*,消息通知(指定被回复人)
-    index("post:attr,root_land,time").on(table.attr, table.root_land, table.time),
-    index("post:attr,user,root_land,time").on(table.attr, table.user, table.root_land, table.time),
-    // root_land>0,各节点帖子(发表时间排序)
-    // root_land<0,帖内回复(发表时间排序)
+    index("post:attr,land,time").on(table.attr, table.land, table.time),
+    index("post:attr,user,land,time").on(table.attr, table.user, table.land, table.time),
+    // land>0,各节点帖子(发表时间排序)
+    // land<0,帖内回复(发表时间排序)
     // user=*,只显示某用户的
 ]);
 

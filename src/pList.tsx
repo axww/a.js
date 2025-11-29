@@ -24,7 +24,7 @@ export async function pList(a: Context) {
         .where(and(
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
-            gt(Post.root_land, 0), // 必须是Thread(root_land>0)
+            gt(Post.land, 0), // 必须是Thread(land>0)
         ))
         .leftJoin(User, eq(Post.user, User.uid))
     )?.[0]
@@ -33,7 +33,7 @@ export async function pList(a: Context) {
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const where = and(
         eq(Post.attr, 0),
-        eq(Post.root_land, -tid),
+        eq(Post.land, -tid),
     )
     const total = (await DB(a)
         .select({ total: count() })
@@ -52,15 +52,15 @@ export async function pList(a: Context) {
         .from(Post)
         .where(where)
         .leftJoin(User, eq(Post.user, User.uid))
-        .leftJoin(QuotePost, and(eq(QuotePost.pid, Post.refer_pid), inArray(QuotePost.attr, [0, 1]), ne(Post.refer_pid, sql`-${Post.root_land}`)))
+        .leftJoin(QuotePost, and(eq(QuotePost.pid, Post.refer_pid), inArray(QuotePost.attr, [0, 1]), ne(Post.refer_pid, sql`-${Post.land}`)))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.user))
-        .orderBy(asc(Post.attr), asc(Post.root_land), asc(Post.time))
+        .orderBy(asc(Post.attr), asc(Post.land), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
         : []
     const pagination = Pagination(page_size_p, total, page, 2)
     const title = raw(await HTMLText(thread.content, 140, true))
-    const thread_lock = [1, 2].includes(thread.root_land) && (a.get('time') > (thread.show_time + 604800))
+    const thread_lock = [1, 2].includes(thread.land) && (a.get('time') > (thread.show_time + 604800))
     data.unshift(thread);
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }

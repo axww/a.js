@@ -16,7 +16,7 @@ export async function tList(a: Context) {
     const where = and(
         inArray(Post.attr, [0, 1]),
         ...(land_comb === null ?
-            [user ? eq(Post.user, user) : undefined, eq(Post.root_land, land)]
+            [user ? eq(Post.user, user) : undefined, eq(Post.land, land)]
             :
             [eq(Post.call_land, land_comb)]
 
@@ -47,7 +47,7 @@ export async function tList(a: Context) {
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
         .orderBy(desc(Post.attr),
             ...(land_comb === null ?
-                [user ? desc(Post.user) : undefined, desc(Post.root_land), desc(Post.time)]
+                [user ? desc(Post.user) : undefined, desc(Post.land), desc(Post.time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
                 :
                 [desc(Post.call_land), desc(Post.show_time)]

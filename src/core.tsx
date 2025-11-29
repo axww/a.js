@@ -76,7 +76,7 @@ export async function Auth(a: Context) {
     if (!jwt) { return undefined }
     let auth = await verify(jwt, await Config.get<string>(a, 'secret_key')) as { uid: number }
     if (!auth.uid) { return undefined }
-    const message = DB(a).$with('message').as(
+    const message = DB(a).$with(`message`).as(
         DB(a)
             .select({
                 show_time: Post.show_time,
