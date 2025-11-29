@@ -54,7 +54,7 @@ export async function pList(a: Context) {
         .leftJoin(User, eq(Post.user, User.uid))
         .leftJoin(QuotePost, and(eq(QuotePost.pid, Post.refer_pid), inArray(QuotePost.attr, [0, 1]), ne(Post.refer_pid, sql`-${Post.root_land}`)))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.user))
-        .orderBy(asc(Post.attr), asc(Post.root_land), asc(Post.date_time))
+        .orderBy(asc(Post.attr), asc(Post.root_land), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
         : []

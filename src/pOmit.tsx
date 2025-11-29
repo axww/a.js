@@ -58,7 +58,7 @@ export async function pOmit(a: Context) {
             DB(a)
                 .select({
                     pid: Post.pid,
-                    date_time: Post.date_time,
+                    time: Post.time,
                 })
                 .from(Post)
                 .where(and(
@@ -67,7 +67,7 @@ export async function pOmit(a: Context) {
                     // root_land
                     eq(Post.root_land, post.root_land), // 找到同一主题下的所有帖子 root_land本来就<0所以不用正负转换
                 ))
-                .orderBy(desc(Post.attr), desc(Post.root_land), desc(Post.date_time))
+                .orderBy(desc(Post.attr), desc(Post.root_land), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -83,7 +83,7 @@ export async function pOmit(a: Context) {
                 .update(Post)
                 .set({
                     refer_pid: sql<number>`(SELECT COALESCE((SELECT pid FROM ${last}), 0))`,
-                    show_time: sql<number>`MIN(COALESCE((SELECT date_time FROM ${last}),${Post.show_time}),${Post.show_time})`, // 考虑不需要更新show_time的分区?
+                    show_time: sql<number>`MIN(COALESCE((SELECT time FROM ${last}),${Post.show_time}),${Post.show_time})`, // 考虑不需要更新show_time的分区?
                 })
                 .where(eq(Post.pid, -post.root_land)) // 更新Thread(tid=-root_land)
             ,

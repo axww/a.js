@@ -28,7 +28,7 @@ export async function pSave(a: Context) {
                 eq(Post.pid, -eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
                 (i.grade >= 3) ? undefined : eq(Post.user, i.uid), // 站长和作者都能编辑
-                (i.grade >= 3) ? undefined : gt(sql<number>`${Post.date_time} + 604800`, a.get('time')), // 7天后禁止编辑
+                (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
             .returning({ pid: Post.pid })
         )?.[0]
@@ -66,7 +66,7 @@ export async function pSave(a: Context) {
                     call_land: -quote.uid,
                     show_time: (i.uid == quote.uid) ? 0 : a.get('time'), // 如果回复的是自己则隐藏
                     root_land: -quote.tid,
-                    date_time: a.get('time'),
+                    time: a.get('time'),
                     content,
                 })
                 .returning({ pid: Post.pid })
@@ -104,7 +104,7 @@ export async function pSave(a: Context) {
                     call_land: land_comb,
                     show_time: a.get('time'),
                     root_land: land,
-                    date_time: a.get('time'),
+                    time: a.get('time'),
                     content,
                 }).returning({ pid: Post.pid })
             ,

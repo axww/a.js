@@ -35,7 +35,7 @@ export async function tList(a: Context) {
             name: User.name,
             grade: User.grade,
             credits: User.credits,
-            last_time: LastPost.date_time,
+            last_time: LastPost.time,
             last_name: LastUser.name,
             last_grade: LastUser.grade,
             last_credits: LastUser.credits,
@@ -47,7 +47,7 @@ export async function tList(a: Context) {
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
         .orderBy(desc(Post.attr),
             ...(land_comb === null ?
-                [user ? desc(Post.user) : undefined, desc(Post.root_land), desc(Post.date_time)]
+                [user ? desc(Post.user) : undefined, desc(Post.root_land), desc(Post.time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
                 :
                 [desc(Post.call_land), desc(Post.show_time)]

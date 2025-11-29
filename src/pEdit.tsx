@@ -22,7 +22,7 @@ export async function pEdit(a: Context) {
                 eq(Post.pid, -eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
                 (i.grade >= 3) ? undefined : eq(Post.user, i.uid), // 站长和作者都能编辑
-                (i.grade >= 3) ? undefined : gt(sql<number>`${Post.date_time} + 604800`, a.get('time')), // 7天后禁止编辑
+                (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
