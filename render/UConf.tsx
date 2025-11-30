@@ -62,12 +62,6 @@ ${CBegin(a, z)}
           <span class="text-gray-900">职务</span>
           <span class="text-gray-600">${role}</span>
         </p>
-        <p class="mt-1 text-sm/6">
-          <span class="text-gray-900">我的</span>
-          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=1" target="_blank">讨论</a>
-          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=2" target="_blank">促销</a>
-          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=3" target="_blank">笔记</a>
-        </p>
         </div>
     </div>
     <div class="mt-6 flex items-center justify-end gap-x-6">
