@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { Header, Footer } from "./Common";
+import { tListBase } from "../src/base";
 import { HTMLText, URLQuery } from "../src/core";
-import { tListProps } from "../src/tListProps";
+import { Header, Footer } from "./Common";
 
-export function TList(a: Context, z: tListProps) {
+export function TList(a: Context, z: tListBase) {
     return html`
 ${Header(a, z)}
 

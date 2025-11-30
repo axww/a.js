@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../src/core";
+import { Base } from "../src/base";
 import { Header, Footer } from "./Common";
 
-export function UConf(a: Context, z: Props) {
+export function UConf(a: Context, z: Base) {
   z.i = z.i! // 非空断言
   let role = "会员";
   switch (z.i.grade) {

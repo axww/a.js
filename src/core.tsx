@@ -4,15 +4,6 @@ import { getCookie } from "hono/cookie";
 import { HTMLRewriter } from "htmlrewriter";
 import { connect, Database } from "@tursodatabase/database";
 
-export interface Props {
-    i: any // Omit<typeof User.$inferSelect, "hash" | "salt"> & { last_call: number } | undefined
-    title: string
-    keywords?: string; // SEO 可选关键词
-    description?: string; // SEO 可选描述
-    thread_lock?: boolean
-    head_external?: string
-}
-
 export class DB {
     public static db: Database
     static async init() {

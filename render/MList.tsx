@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../src/core";
+import { Base } from "../src/base";
 import { Header, Footer } from "./Common";
 
-export function MList(a: Context, z: Props) {
+export function MList(a: Context, z: Base) {
     if (!z.i) {
         // 当用户未登录时，自动重定向到登录页面
         return html`

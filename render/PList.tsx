@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { Header, Footer } from "./Common";
+import { pListBase } from "../src/base";
 import { HTMLText, URLQuery } from "../src/core";
-import { pListProps } from "../src/pListProps";
+import { Header, Footer } from "./Common";
 
-export function PList(a: Context, z: pListProps) {
+export function PList(a: Context, z: pListBase) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>
