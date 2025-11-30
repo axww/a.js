@@ -14,6 +14,7 @@ export async function CFinish(a: Context, z: any) {
         </div>
         ${(await Config.get<number>(a, 'land', true) == 4) ? `` : html`
         <p class="text-sm opacity-50">
+          <a href="https://github.com/csznet" target="_blank">CSZ</a>
           <a href="https://github.com/asisyu" target="_blank">AsisYu</a>
           <a href="https://github.com/Kutinana" target="_blank">Kutinana</a>
           <a href="https://www.dogyun.com/" target="_blank">DogYun</a>

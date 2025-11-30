@@ -21,3 +21,10 @@ proxy_pass http://127.0.0.1:3000;
 proxy_set_header Host $http_host;
 }
 }
+
+DB:
+attr 0正常 T1置顶 P1连带删除 2自己删除 3管理删除
+call T=0所有话题 P>0通知哪个用户 P<0通知自己无效
+land T>0话题所属分区 P<0回复所属帖子
+sort T最后回复时间 P帖子发表时间
+cite T话题发表时间 P回复引用帖子
