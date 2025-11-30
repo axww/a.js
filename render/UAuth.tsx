@@ -2,11 +2,12 @@ import { Context } from "hono";
 import { html } from "hono/html";
 import { Base } from "../src/base";
 import { Config } from "../src/core";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export async function UAuth(a: Context, z: Base) {
   return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="flex flex-col justify-center px-6 lg:px-8 h-full">
     <form class="space-y-8 sm:mx-auto sm:w-full sm:max-w-sm" onsubmit="auth(this);">
@@ -86,6 +87,6 @@ ${Header(a, z)}
       }
 </script>
 
-${Footer(a, z)}
+${CFinish(a, z)}
 `;
 }

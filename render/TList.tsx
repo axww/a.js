@@ -2,11 +2,12 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { tListBase } from "../src/base";
 import { HTMLText, URLQuery } from "../src/core";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export function TList(a: Context, z: tListBase) {
     return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="max-w-5xl mx-auto">
 
@@ -90,7 +91,7 @@ ${Header(a, z)}
     `}
 </div>
 
-${Footer(a, z)}
+${CFinish(a, z)}
 `
         ;
 }

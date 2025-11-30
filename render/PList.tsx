@@ -2,7 +2,8 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { pListBase } from "../src/base";
 import { HTMLText, URLQuery } from "../src/core";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export function PList(a: Context, z: pListBase) {
     z.head_external = raw(`
@@ -93,7 +94,7 @@ export function PList(a: Context, z: pListBase) {
         </style>
     `);
     return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="container mx-auto max-w-5xl lg:px-0">
     <div class="flex flex-col gap-4">
@@ -272,6 +273,6 @@ window.addEventListener("load", function () {
 });
 </script>
 
-${Footer(a, z)}
+${CFinish(a, z)}
     `;
 }

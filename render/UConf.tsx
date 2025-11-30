@@ -1,7 +1,8 @@
 import { Context } from "hono";
 import { html } from "hono/html";
 import { Base } from "../src/base";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export function UConf(a: Context, z: Base) {
   z.i = z.i! // 非空断言
@@ -14,7 +15,7 @@ export function UConf(a: Context, z: Base) {
     case 3: role = '站长'; break;
   }
   return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="container w-full mx-auto max-w-5xl p-6 bg-white shadow-md rounded-lg divide-y divide-gray-200">
   <form onsubmit="event.preventDefault(); save(this);">
@@ -105,6 +106,6 @@ ${Header(a, z)}
     }
 </script>
 
-${Footer(a, z)}
+${CFinish(a, z)}
 `;
 }

@@ -2,7 +2,8 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { pEditBase } from "../src/base";
 import { Config } from "../src/core";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export async function PEdit(a: Context, z: pEditBase) {
     z.head_external = raw(`
@@ -31,7 +32,7 @@ export async function PEdit(a: Context, z: pEditBase) {
         </style>
     `)
     return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="container mx-auto max-w-5xl">
     <div class="card bg-base-100 shadow-lg">
@@ -72,6 +73,6 @@ ${Header(a, z)}
     toolbar.addHandler('image', upload);
 </script>
 
-${Footer(a, z)}
+${CFinish(a, z)}
 `;
 }

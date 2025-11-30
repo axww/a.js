@@ -1,7 +1,8 @@
 import { Context } from "hono";
 import { html } from "hono/html";
 import { Base } from "../src/base";
-import { Header, Footer } from "./Common";
+import { CBegin } from "./CBegin";
+import { CFinish } from "./CFinish";
 
 export function MList(a: Context, z: Base) {
     if (!z.i) {
@@ -14,7 +15,7 @@ export function MList(a: Context, z: Base) {
     }
 
     return html`
-${Header(a, z)}
+${CBegin(a, z)}
 
 <div class="container mx-auto max-w-5xl lg:px-0 py-6">
     <div class="flex flex-col gap-4">
@@ -305,6 +306,6 @@ mFetch();
 document.getElementById('load').addEventListener('click', mFetch);
 </script>
 
-${Footer(a, z)}
+${CFinish(a, z)}
 `;
 }
