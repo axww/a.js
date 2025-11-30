@@ -14,7 +14,7 @@ export async function pJump(a: Context) {
             ORDER BY attr ASC, land ASC, sort ASC
         `) // 回复 attr 不可能是 1 置顶
         .get([-tid, sort])
-    )?.['skip']
+    )?.skip ?? 0
     const page = Math.ceil(skip / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + sort, 301)
 }

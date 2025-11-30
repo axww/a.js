@@ -16,7 +16,7 @@ export async function tList(a: Context) {
             AND `+ (land ? `land` : `call`) + ` = ?
         `)
         .get([land])
-    )?.['total'] ?? 0
+    )?.total ?? 0
     const data = total ? await DB.db
         .prepare(`
             SELECT *,

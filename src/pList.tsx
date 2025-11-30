@@ -30,7 +30,7 @@ export async function pList(a: Context) {
             WHERE attr = 0 AND land = ?
         `)
         .get([-tid])
-    )?.['total'] ?? 0
+    )?.total ?? 0
     const data = total ? await DB.db
         .prepare(`
             SELECT
