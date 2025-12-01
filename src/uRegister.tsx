@@ -1,8 +1,7 @@
 import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { setCookie } from "hono/cookie";
-import { Md5 } from "ts-md5";
-import { Config, DB, RandomString } from "./core";
+import { Config, DB, MD5, RandomString } from "./core";
 
 export async function uRegister(a: Context) {
     const body = await a.req.formData()
@@ -11,7 +10,7 @@ export async function uRegister(a: Context) {
     if (!cert || !pass) { return a.notFound() }
     let rand = RandomString(16);
     const uid = DB.prepare(`INSERT OR IGNORE INTO user (mail,name,hash,salt,time) VALUES (?,?,?,?,?)`)
-        .run([cert, '#' + a.get('time'), Md5.hashStr(pass + rand), rand, a.get('time')])
+        .run([cert, '#' + a.get('time'), MD5(pass + rand), rand, a.get('time')])
         .lastInsertRowid
     if (!uid) { return a.text('data_conflict', 409) }
     try {

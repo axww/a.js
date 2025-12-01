@@ -1,8 +1,7 @@
 import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { setCookie } from "hono/cookie";
-import { Md5 } from "ts-md5";
-import { Config, DB } from "./core";
+import { Config, DB, MD5 } from "./core";
 
 export async function uLogin(a: Context) {
     const body = await a.req.formData();
@@ -15,7 +14,7 @@ export async function uLogin(a: Context) {
     if (!user) {
         return a.text('no user', 401);
     }
-    if (Md5.hashStr(pass + user.salt) !== user.hash) {
+    if (MD5(pass + user.salt) !== user.hash) {
         return a.text('401', 401);
     }
     try {

@@ -260,3 +260,60 @@ export function RandomString(length: number = 16): string {
     }
     return result;
 }
+
+export function MD5(input: string | ArrayBuffer | Uint8Array): string {
+    function toUint8(data: typeof input): Uint8Array {
+        if (typeof data === "string") return new TextEncoder().encode(data);
+        if (data instanceof Uint8Array) return data;
+        return new Uint8Array(data);
+    }
+    function toHex(bytes: Uint8Array): string {
+        return Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+    function leftRotate(x: number, c: number): number {
+        return (x << c) | (x >>> (32 - c));
+    }
+    const bytes = toUint8(input);
+    const origLen = bytes.length;
+    const bitLen = origLen * 8;
+    const padLen = ((56 - ((origLen + 1) % 64)) + 64) % 64;
+    const totalLen = origLen + 1 + padLen + 8;
+    const buffer = new Uint8Array(totalLen);
+    buffer.set(bytes, 0);
+    buffer[origLen] = 0x80;
+    const view = new DataView(buffer.buffer);
+    view.setUint32(totalLen - 8, bitLen >>> 0, true);
+    view.setUint32(totalLen - 4, Math.floor(bitLen / 0x100000000) >>> 0, true);
+    let a = 0x67452301, b = 0xefcdab89, c = 0x98badcfe, d = 0x10325476;
+    const s = [
+        7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22, 7, 12, 17, 22,
+        5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20, 5, 9, 14, 20,
+        4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23, 4, 11, 16, 23,
+        6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21
+    ];
+    const K = new Uint32Array(64);
+    for (let i = 0; i < 64; i++) K[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 2 ** 32) >>> 0;
+    for (let i = 0; i < buffer.length; i += 64) {
+        const M = new Uint32Array(16);
+        for (let j = 0; j < 16; j++) M[j] = view.getUint32(i + j * 4, true);
+        let A = a, B = b, C = c, D = d;
+        for (let j = 0; j < 64; j++) {
+            let F: number, g: number;
+            if (j < 16) { F = (B & C) | (~B & D); g = j; }
+            else if (j < 32) { F = (D & B) | (~D & C); g = (5 * j + 1) % 16; }
+            else if (j < 48) { F = B ^ C ^ D; g = (3 * j + 5) % 16; }
+            else { F = C ^ (B | ~D); g = (7 * j) % 16; }
+            const tmp = D;
+            const sum = (A + F + K[j] + M[g]) >>> 0;
+            D = C; C = B; B = (B + leftRotate(sum, s[j])) >>> 0; A = tmp;
+        }
+        a = (a + A) >>> 0; b = (b + B) >>> 0; c = (c + C) >>> 0; d = (d + D) >>> 0;
+    }
+    const out = new Uint8Array(16);
+    const outView = new DataView(out.buffer);
+    outView.setUint32(0, a, true);
+    outView.setUint32(4, b, true);
+    outView.setUint32(8, c, true);
+    outView.setUint32(12, d, true);
+    return toHex(out);
+}
