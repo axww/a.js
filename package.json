@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
-    "file-type": "^21.1.1",
     "hono": "^4.10.7",
     "htmlrewriter": "^0.0.13",
     "libsql": "^0.5.22"
