@@ -8,10 +8,10 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
-    "@tursodatabase/database": "^0.3.2",
     "file-type": "^21.1.1",
     "hono": "^4.10.7",
     "htmlrewriter": "^0.0.13",
+    "libsql": "^0.5.22",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {

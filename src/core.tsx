@@ -2,12 +2,12 @@ import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
 import { HTMLRewriter } from "htmlrewriter";
-import { connect, Database } from "@tursodatabase/database";
+import Database from "libsql";
 
 export class DB {
-    public static db: Database
+    public static db: any
     static async init() {
-        this.db = await connect("www.db");
+        this.db = new Database("www.db");
     }
 }
 
