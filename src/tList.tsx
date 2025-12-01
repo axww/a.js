@@ -8,17 +8,15 @@ export async function tList(a: Context) {
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const land = await Config.get<number>(a, 'land', true) ?? parseInt(a.req.query('land') ?? '0')
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
-    const total = (await DB.db
-        .prepare(`
+    const total = (DB.prepare(`
             SELECT count(*) AS total
             FROM post
             WHERE attr IN (0,1)
             AND `+ (land ? `land` : `call`) + ` = ?
         `)
-        .get([land])
+        .get([land]) as any
     )?.total ?? 0
-    const data = total ? await DB.db
-        .prepare(`
+    const data = total ? DB.prepare(`
             SELECT *,
             u.name AS name,
             u.grade AS grade,

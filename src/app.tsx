@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { bodyLimit } from 'hono/body-limit';
-import { DB } from './core';
 import { uAuth } from './uAuth';
 import { mList } from './mList';
 import { mData } from './mData';
@@ -30,7 +29,6 @@ declare module 'hono' {
   }
 }
 const app = new Hono();
-await DB.init();
 
 app.use(async (a, next) => {
   a.set('time', Math.floor(Date.now() / 1000));

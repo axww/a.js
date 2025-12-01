@@ -6,8 +6,7 @@ export async function mClear(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     try {
-        await DB.db
-            .prepare(`UPDATE user SET last_read = ? WHERE uid = ?`)
+        DB.prepare(`UPDATE user SET last_read = ? WHERE uid = ?`)
             .run([a.get('time'), i.uid])
     } catch (error) {
         console.error('切换失败:', error);

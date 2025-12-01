@@ -4,13 +4,7 @@ import { getCookie } from "hono/cookie";
 import { HTMLRewriter } from "htmlrewriter";
 import Database from "libsql";
 
-export class DB {
-    public static db: any
-    static async init() {
-        this.db = new Database("www.db");
-    }
-}
-
+export const DB = new Database("www.db");
 export class Maps {
     // 存储 map 的内存容器
     private static maps: Map<string, Map<any, any>> = new Map();
@@ -41,7 +35,7 @@ export class Config {
     private static data = Maps.get<string, any>('Config');
     private static void = true;
     static async init(a: Context) {
-        const configs = await DB.db.prepare(`SELECT * FROM conf`).all();
+        const configs = DB.prepare(`SELECT * FROM conf`).all() as any;
         configs.forEach(({ key, value }: { key: string; value: string }) => {
             try {
                 this.data.set(key, value ? JSON.parse(value) : null);
@@ -62,8 +56,7 @@ export class Config {
     static async set(a: Context, key: string, value: any) {
         if (this.void) { await this.init(a); }
         try {
-            await DB.db
-                .prepare(`INSERT INTO conf (?) VALUES (?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`)
+            DB.prepare(`INSERT INTO conf (?) VALUES (?) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`)
                 .run([key, value])
             this.data.set(key, value)
         } catch (error) {
@@ -77,8 +70,7 @@ export async function Auth(a: Context) {
     if (!jwt) { return undefined }
     let auth = await verify(jwt, await Config.get<string>(a, 'secret_key')) as { uid: number }
     if (!auth.uid) { return undefined }
-    const user = await DB.db
-        .prepare(`
+    const user = DB.prepare(`
             SELECT *,
                 COALESCE((
                     SELECT p.sort 
@@ -90,7 +82,7 @@ export async function Auth(a: Context) {
             FROM user u
             WHERE u.uid = ?
         `)
-        .get([auth.uid, auth.uid])
+        .get([auth.uid, auth.uid]) as any
     if (!user) { return undefined }
     const { hash, salt, ...i } = user // 把密码从返回数据中抹除
     return i
@@ -142,8 +134,17 @@ export function Pagination(perPage: number, sum: number, page: number, near: num
 
 export async function HTMLFilter(html: string | null | undefined): Promise<[string, number]> {
     if (!html) { return ['', 0]; }
-    const allowedTags = new Set(['a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br', 'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section']);
-    const allowedAttrs = new Set(['target', 'href', 'src', 'alt', 'rel', 'width', 'height', 'size', 'border', 'align', 'colspan', 'rowspan', 'cite']);
+    const allowedTags = new Set([
+        'a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span',
+        'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption',
+        'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br',
+        'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section'
+    ]);
+    const allowedAttrs = new Set([
+        'target', 'href', 'src', 'alt', 'rel', 'cite',
+        'width', 'height', 'size', 'border', 'align', 'colspan', 'rowspan'
+    ]);
     let length = 0;
     try {
         return [await new HTMLRewriter().on("*", {

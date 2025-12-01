@@ -16,12 +16,10 @@ export async function uSave(a: Context) {
     if (!/^[\p{L}][\p{L}\p{N}_-]*$/u.test(name)) { return a.text('name_illegal', 422) }
     const pass = body.get('pass')?.toString() ?? ''
     const pass_confirm = body.get('pass_confirm')?.toString() ?? ''
-
-    const user = await DB.db.prepare(`SELECT * FROM user WHERE uid = ?`).get([i.uid])
+    const user = DB.prepare(`SELECT * FROM user WHERE uid = ?`).get([i.uid]) as any
     if (!user || Md5.hashStr(pass_confirm + user.salt) != user.hash) { return a.text('pass_confirm', 401) }
     try {
-        await DB.db
-            .prepare(`UPDATE user SET mail = ? , name = ? , hash = COALESCE(?, hash) END WHERE uid = ?`)
+        DB.prepare(`UPDATE user SET mail = ? , name = ? , hash = COALESCE(?, hash) WHERE uid = ?`)
             .run([mail, name, pass ? Md5.hashStr(pass + user.salt) : null, i.uid])
     } catch (error) {
         return a.text('data_conflict', 409)

@@ -11,7 +11,7 @@ export async function uLogin(a: Context) {
     if (!cert || !pass) {
         return a.text('401', 401);
     }
-    const user = await DB.db.prepare(`SELECT * FROM user WHERE mail = ? OR name = ?`).get([cert, cert])
+    const user = DB.prepare(`SELECT * FROM user WHERE mail = ? OR name = ?`).get([cert, cert]) as any
     if (!user) {
         return a.text('no user', 401);
     }

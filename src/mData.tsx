@@ -6,8 +6,7 @@ export async function mData(a: Context) {
     if (!i) { return a.text('401', 401) }
     const sort = parseInt(a.req.query('sort') ?? '0')
     // 因为 message 都是 post 所以 tid 是 -land
-    const data = await DB.db
-        .prepare(`
+    const data = DB.prepare(`
             SELECT
                 post.pid AS post_pid,
                 -post.land AS post_tid,
@@ -24,7 +23,7 @@ export async function mData(a: Context) {
             ORDER BY post.attr DESC, post.call DESC, post.sort DESC
             LIMIT 10
         `)
-        .all([i.uid, sort])
+        .all([i.uid, sort]) as any
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);
         row.post_content = await HTMLText(row.post_content, 300);

@@ -6,8 +6,7 @@ import { raw } from "hono/html";
 export async function pList(a: Context) {
     const i = await Auth(a)
     const tid = parseInt(a.req.param('tid'))
-    const thread = await DB.db
-        .prepare(`
+    const thread = DB.prepare(`
             SELECT
                 post.*,
                 user.name AS name,
@@ -19,20 +18,18 @@ export async function pList(a: Context) {
             LEFT JOIN user ON post.user = user.uid
             WHERE post.pid = ? AND post.attr IN (0,1) AND post.land > 0
         `) // 必须是thread(land>0)
-        .get([tid])
+        .get([tid]) as any
     if (!thread) { return a.notFound() }
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
-    const total = (await DB.db
-        .prepare(`
+    const total = (DB.prepare(`
             SELECT COUNT(*) AS total
             FROM post
             WHERE attr = 0 AND land = ?
         `)
-        .get([-tid])
-    )?.total ?? 0
-    const data = total ? await DB.db
-        .prepare(`
+        .get([-tid]) as any)
+        ?.total ?? 0
+    const data = total ? DB.prepare(`
             SELECT
                 post.*,
                 user.name AS name,

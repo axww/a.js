@@ -13,15 +13,14 @@ export async function pEdit(a: Context) {
     let content = ""
     if (eid < 0) {
         title = "编辑"
-        const post = await DB.db
-            .prepare(`
+        const post = DB.prepare(`
                 SELECT *
                 FROM post
                 WHERE pid = ?
                 AND attr IN (0,1)
                 `+ ((i.grade >= 3) ? `` : `AND user = ? AND sort + 604800 > ?`)
-            )
-            .get(-eid, i.uid, a.get('time'))
+        )
+            .get(-eid, i.uid, a.get('time')) as any
         if (!post) { return a.text('403', 403) }
         land = post.land;
         content = raw(post.content) ?? '';
