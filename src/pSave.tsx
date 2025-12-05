@@ -11,8 +11,8 @@ export async function pSave(a: Context) {
     if (![1, 2].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
-        const [content, length] = await HTMLFilter(raw)
-        if (length < 3) { return a.text('content_short', 422) }
+        const content = HTMLFilter(raw)
+        if (content.length < 10) { return a.text('content_short', 422) }
         if (!DB.prepare(`
                 UPDATE post
                 SET land = CASE WHEN land > 0 THEN ? ELSE land END, content = ?
@@ -41,8 +41,8 @@ export async function pSave(a: Context) {
             .get([eid]) as any
         if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
         if ([1, 2].includes(quote.thread_land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 无热度7天后关闭
-        const [content, length] = await HTMLFilter(raw)
-        if (length < 3) { return a.text('content_short', 422) }
+        const content = HTMLFilter(raw)
+        if (content.length < 10) { return a.text('content_short', 422) }
         const pid = (DB.prepare(`INSERT INTO post (user,call,land,sort,cite,content) VALUES (?,?,?,?,?,?)`)
             .run([i.uid, (i.uid == quote.uid) ? -quote.uid : quote.uid, -quote.tid, a.get('time'), quote.pid, content])
         ).lastInsertRowid // 如果回复的是自己则隐藏(-quote.uid)
@@ -59,8 +59,8 @@ export async function pSave(a: Context) {
     } else { // 发帖
         if (a.get('time') - i.last_post < 30) { return a.text('too_fast', 403) } // 防止频繁发帖
         if (i.grade == -1 && a.get('time') - i.last_post < 604800) { return a.text('ad_limit_7day', 403) } // 广告用户
-        const [content, length] = await HTMLFilter(raw)
-        if (length < 3) { return a.text('content_short', 422) }
+        const content = HTMLFilter(raw)
+        if (content.length < 10) { return a.text('content_short', 422) }
         const pid = DB.prepare(`INSERT INTO post (user,land,sort,cite,content) VALUES (?,?,?,?,?)`)
             .run([i.uid, land, a.get('time'), a.get('time'), content])
             .lastInsertRowid

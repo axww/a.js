@@ -1,10 +1,11 @@
 import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
-import { HTMLRewriter } from "htmlrewriter";
 import Database from "libsql";
+import sanitizeHtml from 'sanitize-html';
 
 export const DB = new Database("www.db");
+
 export class Maps {
     // 存储 map 的内存容器
     private static maps: Map<string, Map<any, any>> = new Map();
@@ -132,70 +133,37 @@ export function Pagination(perPage: number, sum: number, page: number, near: num
     return navigation
 }
 
-export async function HTMLFilter(html: string | null | undefined): Promise<[string, number]> {
-    if (!html) { return ['', 0]; }
-    const allowedTags = new Set([
-        'a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span',
-        'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption',
-        'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol',
-        'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br',
-        'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section'
-    ]);
-    const allowedAttrs = new Set([
-        'target', 'href', 'src', 'alt', 'rel', 'cite',
-        'width', 'height', 'size', 'border', 'align', 'colspan', 'rowspan'
-    ]);
-    let length = 0;
-    try {
-        return [await new HTMLRewriter().on("*", {
-            element: e => {
-                if (!allowedTags.has(e.tagName)) {
-                    e.removeAndKeepContent();
-                    return;
-                }
-                for (const [name, value] of e.attributes) {
-                    if (!allowedAttrs.has(name) || value.length > 8000) {
-                        e.removeAttribute(name);
-                    }
-                }
-            },
-            text: t => {
-                length += t.text.replace(/&nbsp;/g, " ").trim().length;
-            },
-        }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text(), length]
-    } catch {
-        return ['', 0];
-    }
+export function HTMLFilter(html: string | null | undefined) {
+    if (!html) { return ''; }
+    return sanitizeHtml(html, {
+        allowedTags: [
+            'a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span',
+            'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption',
+            'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br',
+            'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section'
+        ],
+        allowedAttributes: {
+            'a': ['href', 'target'],
+            'img': ['src', 'alt', 'width', 'height'],
+        }
+    });
 }
 
 export async function HTMLText(html: string | null | undefined, len = 0, first = false) {
     if (!html) { return ''; }
-    let text = '';
-    let stop = false;
-    let pregap = false;
-    try {
-        await new HTMLRewriter().on('*', {
-            element: e => {
-                if (stop) { return; }
-                if (['p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(e.tagName)) {
-                    // 如果只取首行 且遇到换行符 则标签结束时停止
-                    if (first) {
-                        e.onEndTag(() => {
-                            // 有文字再结束
-                            if (text) { stop = true }
-                        })
-                    } else {
-                        // 在新段落前空行
-                        pregap = true;
-                    }
-                }
-            },
-            text: t => {
-                if (stop || !t.text.trim()) { return; }
-                // 本元素开头是空格
-                if (/\s/.test(t.text.at(0) ?? '')) { pregap = true; }
-                // 本元素拼接到字符串
-                text += (pregap ? ' ' : '') + t.text
+    let temp = '';
+    let exec = true;
+    sanitizeHtml(html, {
+        onCloseTag: (tagName) => {
+            // 如果提取首行则返回已积累内容
+            if (first && temp && ['p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+                exec = false;
+            }
+        },
+        textFilter: (text) => {
+            if (exec) {
+                temp += text
                     .replace(/&amp;/g, "&")
                     .replace(/&lt;/g, "<")
                     .replace(/&gt;/g, ">")
@@ -203,29 +171,29 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
                     .replace(/&#39;/g, "'")
                     .replace(/&nbsp;/g, " ")
                     .trim()
-                // 字符串大于指定长度则停止
-                if (text.length >= len) {
-                    if (text.length > len) {
-                        text = text.slice(0, len - 3) + '...';
-                    }
-                    stop = true;
-                    return;
+                // 之前读取到行时加入空格分隔
+                if (temp) {
+                    temp += ' ';
                 }
-                // 记录本元素结尾是否是空格
-                pregap = /\s/.test(t.text.at(-1) ?? '')
-            },
-        }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, "&#39;")
-            .trim()
-            || '...'
-    } catch {
-        return ''
-    }
+                // 字符串大于指定长度则停止
+                if (temp.length >= len) {
+                    if (temp.length > len) {
+                        temp = temp.slice(0, len - 3) + '...';
+                    }
+                    exec = false;
+                }
+            }
+            return '';
+        }
+    });
+    return temp
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "&#39;")
+        .trim()
+        || '...'
 }
 
 export function URLQuery(a: Context, newParams: { [key: string]: string }) {
